@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einstufungstest Deutsch (Vollständig & Verbessert)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <style>
+        :root { --base-font-size: 1rem; }
+        body { font-size: var(--base-font-size); font-family: ui-sans-serif, system-ui, sans-serif; }
+        input.gap-input { all: unset; display: inline-block !important; vertical-align: baseline !important; box-sizing: content-box !important; width: auto !important; min-width: 3ch !important; border-bottom: 1px dotted #9ca3af !important; background: none !important; background-color: transparent !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; outline: none !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important; font: inherit !important; color: inherit !important; line-height: inherit !important; transition: min-width 0.2s; white-space: nowrap; }
+        input.gap-input:focus { outline: none !important; border-bottom: 1px solid #6b7280 !important; }
+        .text-answer-input { border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; border-radius: 0.375rem; width: 100%; margin-top: 0.5rem; }
+        .test-section { display: none; opacity: 0; transition: opacity 0.4s ease-in-out; }
+        .test-section.active { display: block; opacity: 1; }
+        .required-indicator::after { content: '*'; color: #dc2626; margin-left: 0.25rem; }
+        .question-container { margin-bottom: 1.75rem; padding: 1.25rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; background-color: #f9fafb; }
+        .mc-option { display: block; margin-bottom: 0.6rem; cursor: pointer; padding: 0.35rem 0; }
+        .mc-option label { cursor: pointer; display: inline-block; }
+        .mc-option input[type="radio"], .mc-option input[type="checkbox"] { margin-right: 0.75rem; accent-color: #4f46e5; width: 1.1em; height: 1.1em; vertical-align: middle; cursor: pointer; }
+        input:not(.gap-input):focus, select:focus, textarea:focus { outline: 2px solid #818cf8; outline-offset: 1px; border-color: transparent; box-shadow: 0 0 0 2px #c7d2fe; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #e5e7eb; padding: 0.5rem 0.75rem; vertical-align: middle; }
+        th { background-color: #f3f4f6; text-align: left; }
+        td input[type="radio"], td input[type="checkbox"] { margin: 0 auto; display: block; }
+        #pause-overlay { transition: opacity 0.3s ease-in-out; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #start-test-btn:disabled { background-color: #9ca3af; }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8 font-sans">
+    <div class="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-lg relative">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 border-b pb-3">Einstufungstest Deutsch</h1>
+        <div class="mb-4">
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                <div id="progress-bar" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+            </div>
+            <div class="flex items-center justify-end gap-2 text-sm">
+                <span class="font-medium text-gray-600">Schriftgrösse:</span>
+                <button id="decrease-font-btn" title="Schrift verkleinern" class="px-2 py-0.5 rounded-md bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 transition duration-150 ease-in-out">-</button>
+                <button id="increase-font-btn" title="Schrift vergrössern" class="px-2 py-0.5 rounded-md bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 transition duration-150 ease-in-out">+</button>
+            </div>
+        </div>
+        <div class="flex justify-between items-center mb-6 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+            <div id="progress-indicator" class="font-medium">Startseite</div>
+        </div>
+
+        <div id="test-container">
+            <section id="section-0" class="test-section active">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Willkommen!</h2>
+                <p class="mb-4 text-gray-600">Dieser Test erfasst Ihre grundlegenden Kenntnisse in Deutsch.</p>
+                <p class="mb-4 text-gray-600">Bitte beantworten Sie die Fragen sorgfältig. Ihr Fortschritt wird automatisch im gewählten Ordner gesichert, wenn Sie den Test bearbeiten.</p>
+                <div class="mb-6 p-4 border border-blue-200 rounded-lg bg-blue-50">
+                    <button id="select-dir-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition duration-150 ease-in-out mb-2">
+                        Sicherungsordner wählen...
+                    </button>
+                    <div>
+                        <p id="dir-status" class="text-sm text-gray-600 italic inline-block">Noch kein Ordner ausgewählt.</p>
+                        <span id="dir-check" class="text-green-600 ml-2 hidden font-bold text-lg inline-block">&#x2714;</span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-end gap-4 mb-6">
+                    <div class="w-full md:max-w-md flex-grow">
+                        <label for="student-name" class="block mb-1 font-medium text-gray-700 required-indicator">Ihr Name:</label>
+                        <input type="text" id="student-name" name="student-name" class="border border-gray-300 p-2 rounded-lg w-full" required>
+                        <p id="name-error" class="text-red-600 text-sm mt-1" style="display: none;">Bitte geben Sie Ihren Namen ein.</p>
+                    </div>
+                    <div class="w-full md:w-auto flex-shrink-0 mt-6 md:mt-0">
+                        <button id="start-test-btn" class="bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-white font-semibold py-3 px-6 md:py-4 md:px-8 rounded-lg shadow-sm transition duration-150 ease-in-out text-lg w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400" disabled>
+                            Test starten
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="section-1" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil A: Sprache im Fokus</h2>
+                 <div class="question-container">
+                    <p class="mb-4 text-gray-600">Vervollständigen Sie die Lücken im folgenden Text.</p>
+                    <div id="A-01" class="text-base leading-relaxed text-gray-700 space-y-2">
+                        <p>Smartphones sind aus unserem Alltag nicht mehr wegzudenken. Stän<input type="text" id="A-01-1" name="A-01-1" class="gap-input">ig sind wir online, kommunizier<input type="text" id="A-01-2" name="A-01-2" class="gap-input"> mit Freun<input type="text" id="A-01-3" name="A-01-3" class="gap-input">, inform<input type="text" id="A-01-4" name="A-01-4" class="gap-input"> uns üb<input type="text" id="A-01-5" name="A-01-5" class="gap-input"> die neuesten Ereig<input type="text" id="A-01-6" name="A-01-6" class="gap-input"> oder organ<input type="text" id="A-01-7" name="A-01-7" class="gap-input"> unseren Tag. Die ständige Erreichbar<input type="text" id="A-01-8" name="A-01-8" class="gap-input"> und die Informa<input type="text" id="A-01-9" name="A-01-9" class="gap-input">tionsflut, die uns täglich errei<input type="text" id="A-01-10" name="A-01-10" class="gap-input">, haben unser Leben verändert. S<input type="text" id="A-01-11" name="A-01-11" class="gap-input"> beeinflussen unse<input type="text" id="A-01-12" name="A-01-12" class="gap-input"> Verha<input type="text" id="A-01-13" name="A-01-13" class="gap-input">ltensweisen, wei<input type="text" id="A-01-14" name="A-01-14" class="gap-input"> wir uns an die neuen Möglichkeiten anpassen. I<input type="text" id="A-01-15" name="A-01-15" class="gap-input">hr Aufgabenbereich hat sich erweitert: Wir können Rechnungen bezah<input type="text" id="A-01-16" name="A-01-16" class="gap-input">, Reisen buchen oder sogar komplizierte Berechnungen durchfü<input type="text" id="A-01-17" name="A-01-17" class="gap-input">. Ich ha<input type="text" id="A-01-18" name="A-01-18" class="gap-input"> zum Beisp<input type="text" id="A-01-19" name="A-01-19" class="gap-input"> eine nütz<input type="text" id="A-01-20" name="A-01-20" class="gap-input">liche App, mit d<input type="text" id="A-01-21" name="A-01-21" class="gap-input">er ich meine Ausgaben kontrol<input type="text" id="A-01-22" name="A-01-22" class="gap-input">liert habe. Mein gesam<input type="text" id="A-01-23" name="A-01-23" class="gap-input">tes Fitnessp<input type="text" id="A-01-24" name="A-01-24" class="gap-input">rogramm hat sich verbessert, seit ich meine Läufe aufzeichne. D<input type="text" id="A-01-25" name="A-01-25" class="gap-input">och es gibt auch Nachteile. Ei<input type="text" id="A-01-26" name="A-01-26" class="gap-input">ne ständige Ablenkung ist nur ei<input type="text" id="A-01-27" name="A-01-27" class="gap-input">ne von vielen. Die Cha<input type="text" id="A-01-28" name="A-01-28" class="gap-input">nce, sich zu langweilen und kreativ zu werd<input type="text" id="A-01-29" name="A-01-29" class="gap-input">en, wird stän<input type="text" id="A-01-30" name="A-01-30" class="gap-input">dig geringer. Es ist wichtig, eine gesunde Balance z<input type="text" id="A-01-31" name="A-01-31" class="gap-input">u finden. Eine Herausfor<input type="text" id="A-01-32" name="A-01-32" class="gap-input">derung ist die Auswir<input type="text" id="A-01-33" name="A-01-33" class="gap-input">kung auf unsere Konzentration. Wir müssen lernen, bewusst Pausen einzule<input type="text" id="A-01-34" name="A-01-34" class="gap-input">gen.</p>
+                    </div>
+                </div>
+                 <div class="question-container">
+                    <p class="mb-4 text-gray-600">Vervollständigen Sie die Lücken im folgenden Text.</p>
+                    <div id="A-02" class="text-base leading-relaxed text-gray-700 space-y-2">
+                        <p>Was wird die Zukunft bringen? Viele Menschen kön<input type="text" id="A-02-1" name="A-02-1" class="gap-input">nen sich kaum vorstellen, wie das Leben i<input type="text" id="A-02-2" name="A-02-2" class="gap-input">n 20 Jahren aussehen wird. Technologische Fortschritte zu bewäl<input type="text" id="A-02-3" name="A-02-3" class="gap-input">tigen, ist eine unse<input type="text" id="A-02-4" name="A-02-4" class="gap-input">rer grössten Herausforderungen. Die sich verände<input type="text" id="A-02-5" name="A-02-5" class="gap-input">rnde Arbeitswelt und die Globalisierung wir<input type="text" id="A-02-6" name="A-02-6" class="gap-input">ft neue Fragen auf. Es ist zwin<input type="text" id="A-02-7" name="A-02-7" class="gap-input">gend notwendig, dass wir uns anpassen. Hätte man vor 50 Jahren ge<input type="text" id="A-02-8" name="A-02-8" class="gap-input">ahnt, was heute möglich ist, würd<input type="text" id="A-02-9" name="A-02-9" class="gap-input">e man es kaum für möglich halten. Manchmal muss man ein<input type="text" id="A-02-10" name="A-02-10" class="gap-input">fach einen Schritt zurücktreten, um das gröss<input type="text" id="A-02-11" name="A-02-11" class="gap-input">ere Bild zu seh<input type="text" id="A-02-12" name="A-02-12" class="gap-input">en. Unse<input type="text" id="A-02-13" name="A-02-13" class="gap-input">re Fähigkeit, Probleme zu lö<input type="text" id="A-02-14" name="A-02-14" class="gap-input">sen, wird entscheidend sein. Die Entscheidungen, die wir heute treff<input type="text" id="A-02-15" name="A-02-15" class="gap-input">en, werden s<input type="text" id="A-02-16" name="A-02-16" class="gap-input">ich auf die nächsten Generationen auswirken. Der Jo<input type="text" id="A-02-17" name="A-02-17" class="gap-input">b eines Zukunftsforschers wird immer wichtiger wer<input type="text" id="A-02-18" name="A-02-18" class="gap-input">den. Er hilft u<input type="text" id="A-02-19" name="A-02-19" class="gap-input">ns, Trends zu erkennen. Es geht nicht n<input type="text" id="A-02-20" name="A-02-20" class="gap-input">ur um die Sicher<input type="text" id="A-02-21" name="A-02-21" class="gap-input">heit, sond<input type="text" id="A-02-22" name="A-02-22" class="gap-input">ern auch um die gesellschaft<input type="text" id="A-02-23" name="A-02-23" class="gap-input">liche Entwickl<input type="text" id="A-02-24" name="A-02-24" class="gap-input">ung und die Bil<input type="text" id="A-02-25" name="A-02-25" class="gap-input">dung. D<input type="text" id="A-02-26" name="A-02-26" class="gap-input">ie Möglichkeiten sind riesig, aber die Verantwor<input type="text" id="A-02-27" name="A-02-27" class="gap-input">tung ist es auch. Man darf ni<input type="text" id="A-02-28" name="A-02-28" class="gap-input">cht vergessen, dass technologis<input type="text" id="A-02-29" name="A-02-29" class="gap-input">cher Fortschritt kein Selbstzweck ist. S<input type="text" id="A-02-30" name="A-02-30" class="gap-input">ie muss den Menschen dienen. D<input type="text" id="A-02-31" name="A-02-31" class="gap-input">as ist der richtige Weg<input type="text" id="A-02-32" name="A-02-32" class="gap-input">. Wir müssen sicherstel<input type="text" id="A-02-33" name="A-02-33" class="gap-input">len, dass die zukünf<input type="text" id="A-02-34" name="A-02-34" class="gap-input">tige Welt eine bessere ist. Jeder k<input type="text" id="A-02-35" name="A-02-35" class="gap-input">ann seinen Beitrag leist<input type="text" id="A-02-36" name="A-02-36" class="gap-input">en. Die wich<input type="text" id="A-02-37" name="A-02-37" class="gap-input">tigste Aufgabe ist es, offen z<input type="text" id="A-02-38" name="A-02-38" class="gap-input">u bleiben.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-2" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil B: Orthografie & Grammatik – Block 1</h2>
+                <div class="question-container">
+                    <p class="mb-4 text-gray-600">Wählen Sie die korrekte Variante.</p>
+                    <div class="space-y-4">
+                        <div id="B-01-1">
+                            <p class="mb-2 font-medium">1. Gross- und Kleinschreibung</p>
+                            <label class="mc-option"><input type="radio" name="B-01-1" value="a"> Das Laufen im Wald macht Spass.</label>
+                            <label class="mc-option"><input type="radio" name="B-01-1" value="b"> Das laufen im Wald macht Spass.</label>
+                        </div>
+                        <div id="B-01-2">
+                            <p class="mb-2 font-medium">2. Getrennt- und Zusammenschreibung</p>
+                            <label class="mc-option"><input type="radio" name="B-01-2" value="a"> Er muss die Koffer mit nehmen.</label>
+                            <label class="mc-option"><input type="radio" name="B-01-2" value="b"> Er muss die Koffer mitnehmen.</label>
+                        </div>
+                        <div id="B-01-3">
+                            <p class="mb-2 font-medium">3. Verbform</p>
+                            <label class="mc-option"><input type="radio" name="B-01-3" value="a"> Gestern schrib ich einen Brief.</label>
+                            <label class="mc-option"><input type="radio" name="B-01-3" value="b"> Gestern schrieb ich einen Brief.</label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-3" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil B: Orthografie & Grammatik – Block 2</h2>
+                <div class="question-container">
+                    <p class="mb-4 text-gray-600">Wählen Sie den Satz mit der korrekten Kommasetzung.</p>
+                    <div class="space-y-4">
+                        <div id="B-02-1">
+                            <p class="mb-2 font-medium">1. Nebensatz</p>
+                            <label class="mc-option"><input type="radio" name="B-02-1" value="a"> Ich gehe nach Hause, weil ich müde bin.</label>
+                            <label class="mc-option"><input type="radio" name="B-02-1" value="b"> Ich gehe nach Hause weil ich müde bin.</label>
+                        </div>
+                        <div id="B-02-2">
+                            <p class="mb-2 font-medium">2. Relativsatz</p>
+                            <label class="mc-option"><input type="radio" name="B-02-2" value="a"> Der Mann der dort steht, ist mein Onkel.</label>
+                            <label class="mc-option"><input type="radio" name="B-02-2" value="b"> Der Mann, der dort steht, ist mein Onkel.</label>
+                        </div>
+                        <div id="B-02-3">
+                            <p class="mb-2 font-medium">3. Infinitivgruppe</p>
+                            <label class="mc-option"><input type="radio" name="B-02-3" value="a"> Er versprach, pünktlich zu sein.</label>
+                            <label class="mc-option"><input type="radio" name="B-02-3" value="b"> Er versprach pünktlich zu sein.</label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="section-4" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil B: Orthografie & Grammatik – Block 3</h2>
+                <div class="question-container">
+                    <p class="mb-4 text-gray-600">Wählen Sie die grammatikalisch korrekte Variante.</p>
+                    <div class="space-y-4">
+                        <div id="B-03-1">
+                            <p class="mb-2 font-medium">1. Passiv</p>
+                            <label class="mc-option"><input type="radio" name="B-03-1" value="a"> Das Auto wurde gestern repariert.</label>
+                            <label class="mc-option"><input type="radio" name="B-03-1" value="b"> Das Auto war gestern repariert.</label>
+                        </div>
+                        <div id="B-03-2">
+                            <p class="mb-2 font-medium">2. Konjunktiv I (Indirekte Rede)</p>
+                            <label class="mc-option"><input type="radio" name="B-03-2" value="a"> Er sagte, er sei krank.</label>
+                            <label class="mc-option"><input type="radio" name="B-03-2" value="b"> Er sagte, er ist krank.</label>
+                        </div>
+                        <div id="B-03-3">
+                            <p class="mb-2 font-medium">3. Konjunktiv II (Bedingung)</p>
+                            <label class="mc-option"><input type="radio" name="B-03-3" value="a"> Wenn ich Zeit hätte, würde ich kommen.</label>
+                            <label class="mc-option"><input type="radio" name="B-03-3" value="b"> Wenn ich Zeit habe, würde ich kommen.</label>
+                        </div>
+                        <div id="B-03-4">
+                            <p class="mb-2 font-medium">4. Relativpronomen</p>
+                            <label class="mc-option"><input type="radio" name="B-03-4" value="a"> Das ist der Freund, der mir geholfen hat.</label>
+                            <label class="mc-option"><input type="radio" name="B-03-4" value="b"> Das ist der Freund, dem mir geholfen hat.</label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="section-5" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil B: Orthografie & Grammatik – Block 4</h2>
+                 <div class="question-container">
+                    <p class="mb-4 text-gray-600">Wählen Sie die korrekte oder stilistisch bessere Variante.</p>
+                    <div class="space-y-4">
+                        <div id="B-04-1">
+                            <p class="mb-2 font-medium">1. Fall nach Präposition</p>
+                            <label class="mc-option"><input type="radio" name="B-04-1" value="a"> Trotz des schlechten Wetters gingen wir spazieren.</label>
+                            <label class="mc-option"><input type="radio" name="B-04-1" value="b"> Trotz dem schlechten Wetter gingen wir spazieren.</label>
+                        </div>
+                        <div id="B-04-2">
+                            <p class="mb-2 font-medium">2. Stil</p>
+                            <label class="mc-option"><input type="radio" name="B-04-2" value="a"> Im Bericht steht, dass die Zahlen nicht stimmen.</label>
+                            <label class="mc-option"><input type="radio" name="B-04-2" value="b"> Aus dem Bericht geht hervor, dass die Zahlen nicht stimmen.</label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-6" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil C: Lesen – Aufgabe 1</h2>
+                <div class="question-container" id="lesen_biohof_01">
+                    <h3 class="font-semibold text-lg mb-3 text-gray-800">Leseverständnis: Biohof</h3>
+                    <p class="mb-4 text-gray-600">Lesen Sie den Text und entscheiden Sie, ob die Aussagen richtig, falsch oder unklar sind.</p>
+                    <div class="p-4 border rounded-md bg-gray-50 mb-4">
+                        <h4 class="font-semibold">Erlebnis Biohof: Kurs "Vom Korn zum Brot"</h4>
+                        <p class="mt-2 text-gray-700">Entdecken Sie die Welt des traditionellen Backens auf unserem idyllischen Biohof! In unserem Wochenendkurs lernen Sie alles über den Weg des Getreides vom Feld bis ins fertige Brot. Wir starten mit einer Führung über unsere Felder, wo wir Ihnen verschiedene Getreidesorten wie Dinkel und Roggen vorstellen. Anschliessend mahlen wir gemeinsam das Korn in unserer historischen Mühle. Am Sonntagnachmittag backen Sie unter Anleitung unseres erfahrenen Bäckermeisters Ihr eigenes Sauerteigbrot im Holzofen. Der Kurs findet von Samstag, 10 Uhr, bis Sonntag, 16 Uhr, statt. Die Kursgebühr von 250 CHF beinhaltet alle Materialien, Verpflegung und eine Übernachtung im Doppelzimmer. Einzelzimmer sind gegen einen Aufpreis von 50 CHF buchbar. Vorkenntnisse sind nicht erforderlich. Melden Sie sich jetzt an!</p>
+                    </div>
+                    <table class="w-full text-sm text-left">
+                        <thead><tr><th>Aussage</th><th class="text-center w-20">Richtig</th><th class="text-center w-20">Falsch</th><th class="text-center w-20">Unklar</th></tr></thead>
+                        <tbody>
+                            <tr class="border-b"><td>1. Der Kurs dauert zwei volle Tage.</td><td><input type="radio" name="lesen_biohof_01-1" value="Richtig"></td><td><input type="radio" name="lesen_biohof_01-1" value="Falsch"></td><td><input type="radio" name="lesen_biohof_01-1" value="Unklar"></td></tr>
+                            <tr class="border-b"><td>2. Im Kurs wird gezeigt, wie man Weizen anbaut.</td><td><input type="radio" name="lesen_biohof_01-2" value="Richtig"></td><td><input type="radio" name="lesen_biohof_01-2" value="Falsch"></td><td><input type="radio" name="lesen_biohof_01-2" value="Unklar"></td></tr>
+                            <tr class="border-b"><td>3. Der Kurs ist für Anfänger und Fortgeschrittene geeignet.</td><td><input type="radio" name="lesen_biohof_01-3" value="Richtig"></td><td><input type="radio" name="lesen_biohof_01-3" value="Falsch"></td><td><input type="radio" name="lesen_biohof_01-3" value="Unklar"></td></tr>
+                            <tr><td>4. Die Übernachtung im Einzelzimmer kostet 300 CHF.</td><td><input type="radio" name="lesen_biohof_01-4" value="Richtig"></td><td><input type="radio" name="lesen_biohof_01-4" value="Falsch"></td><td><input type="radio" name="lesen_biohof_01-4" value="Unklar"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="section-7" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil C: Lesen – Aufgabe 2</h2>
+                <div class="question-container" id="lesen_tempolimit_02">
+                    <h3 class="font-semibold text-lg mb-3 text-gray-800">Leseverständnis: Meinungen</h3>
+                    <p class="mb-4 text-gray-600">Lesen Sie die Meinungen. Welche Aussagen (1-6) passen zu welcher Person? Mehrfachnennungen sind möglich.</p>
+                    <div class="grid md:grid-cols-3 gap-4 mb-4">
+                        <div class="p-3 border rounded-md bg-gray-50"><strong>Paula:</strong> "Ich fahre oft weite Strecken zur Arbeit. Ein generelles Tempolimit würde meine Fahrzeit erheblich verlängern. Ausserdem sind moderne Autos so sicher, dass höhere Geschwindigkeiten kein Problem sind. Wichtiger wäre, dass die Leute Abstand halten."</div>
+                        <div class="p-3 border rounded-md bg-gray-50"><strong>Max:</strong> "Für mich ist das eine Frage der Vernunft. Schnelles Fahren verbraucht Unmengen an Treibstoff und ist schlecht für die Umwelt. Ausserdem passieren bei hohem Tempo die schlimmsten Unfälle. Sicherheit und Klimaschutz gehen vor."</div>
+                        <div class="p-3 border rounded-md bg-gray-50"><strong>Claudia:</strong> "Ich finde, es kommt auf die Situation an. Auf einer leeren, dreispurigen Autobahn kann man ruhig mal schneller fahren. Bei dichtem Verkehr oder schlechtem Wetter ist ein Limit aber absolut sinnvoll. Eine flexible Regelung wäre die beste Lösung."</div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-x-8 gap-y-4">
+                        <div>
+                            <h4 class="font-semibold mb-2">Aussagen:</h4>
+                            <ol class="list-decimal list-inside space-y-1"><li>Sicherheit ist ein wichtiges Argument.</li><li>Der ökologische Aspekt ist entscheidend.</li><li>Die Regelung sollte von der Verkehrslage abhängen.</li><li>Die persönliche Freiheit sollte nicht unnötig eingeschränkt werden.</li><li>Ein Tempolimit reduziert die Unfallschwere.</li><li>Moderne Technik macht hohe Geschwindigkeiten sicher.</li></ol>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-2">Wer sagt was?</h4>
+                            <div class="space-y-3">
+                                <div><label class="font-medium">Paula:</label><div class="flex space-x-4 mt-1"><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Paula[]" value="1"> 1</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Paula[]" value="2"> 2</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Paula[]" value="3"> 3</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Paula[]" value="4"> 4</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Paula[]" value="5"> 5</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Paula[]" value="6"> 6</label></div></div>
+                                <div><label class="font-medium">Max:</label><div class="flex space-x-4 mt-1"><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Max[]" value="1"> 1</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Max[]" value="2"> 2</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Max[]" value="3"> 3</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Max[]" value="4"> 4</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Max[]" value="5"> 5</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Max[]" value="6"> 6</label></div></div>
+                                <div><label class="font-medium">Claudia:</label><div class="flex space-x-4 mt-1"><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Claudia[]" value="1"> 1</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Claudia[]" value="2"> 2</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Claudia[]" value="3"> 3</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Claudia[]" value="4"> 4</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Claudia[]" value="5"> 5</label><label class="mc-option"><input type="checkbox" name="lesen_tempolimit_02-Claudia[]" value="6"> 6</label></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-8" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil C: Lesen – Aufgabe 3</h2>
+                <div class="question-container" id="lesen_kolumbus_03">
+                    <h3 class="font-semibold text-lg mb-3 text-gray-800">Leseverständnis: Kolumbus</h3>
+                    <p class="mb-4 text-gray-600">Lesen Sie den Text und wählen Sie die zwei Aussagen aus, die dem Inhalt des Textes entsprechen.</p>
+                    <div class="p-4 border rounded-md bg-gray-50 mb-4">
+                        <p class="text-gray-700">Die historische Figur Christoph Kolumbus wird heute zunehmend kritisch betrachtet. Während er in der Vergangenheit oft als mutiger Entdecker gefeiert wurde, der eine neue Welt für Europa erschloss, rücken neuere Betrachtungen die verheerenden Folgen seiner Ankunft für die indigene Bevölkerung Amerikas in den Vordergrund. Die Kolonialisierung führte zu Gewalt, Unterdrückung und dem Einschleppen von Krankheiten, die ganze Kulturen auslöschten. Diese differenzierte Sichtweise versucht, die Komplexität der Geschichte abzubilden, anstatt eine einseitig heroische Erzählung fortzuschreiben. Es geht nicht darum, historische Leistungen zu leugnen, sondern sie in ihren vollständigen Kontext zu setzen, der auch das Leid der Kolonisierten umfasst.</p>
+                    </div>
+                    <div class="space-y-2"><label class="mc-option"><input type="checkbox" name="lesen_kolumbus_03[]" value="1"> Kolumbus wird heute nur noch negativ gesehen.</label><label class="mc-option"><input type="checkbox" name="lesen_kolumbus_03[]" value="2"> Die moderne Geschichtsschreibung berücksichtigt die Perspektive der Ureinwohner stärker.</label><label class="mc-option"><input type="checkbox" name="lesen_kolumbus_03[]" value="3"> Eine umfassende historische Bewertung schliesst sowohl positive als auch negative Aspekte ein.</label><label class="mc-option"><input type="checkbox" name="lesen_kolumbus_03[]" value="4"> Die Entdeckung Amerikas hatte ausschliesslich positive Folgen für Europa.</label><label class="mc-option"><input type="checkbox" name="lesen_kolumbus_03[]" value="5"> Historiker sind sich einig, dass Kolumbus kein mutiger Entdecker war.</label></div>
+                </div>
+            </section>
+
+            <section id="section-9" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil C: Lesen – Aufgabe 4</h2>
+                 <div class="question-container" id="lesen_fotosynthese_04">
+                    <h3 class="font-semibold text-lg mb-3 text-gray-800">Leseverständnis: Fotosynthese</h3>
+                    <p class="mb-4 text-gray-600">Lesen Sie den Text und wählen Sie die zwei Kernaussagen aus.</p>
+                    <div class="p-4 border rounded-md bg-gray-50 mb-4">
+                        <p class="text-gray-700">Die Fotosynthese ist der grundlegende biochemische Prozess, mit dem Pflanzen, Algen und einige Bakterien Lichtenergie in chemische Energie umwandeln. Unter Verwendung von Sonnenlicht, Wasser und Kohlendioxid (CO₂) produzieren sie Glukose (Zucker), die ihnen als Nährstoff dient, und setzen als Nebenprodukt Sauerstoff (O₂) frei. Dieser Sauerstoff ist für das Überleben der meisten Lebewesen auf der Erde, einschliesslich des Menschen, von existenzieller Bedeutung. Die Fotosynthese ist somit nicht nur die Energiebasis für fast alle Ökosysteme, sondern auch der Prozess, der die Atmosphäre unseres Planeten mit lebenswichtigem Sauerstoff anreichert.</p>
+                    </div>
+                    <div class="space-y-2"><label class="mc-option"><input type="checkbox" name="lesen_fotosynthese_04[]" value="1"> Bei der Fotosynthese wird Lichtenergie in chemische Energie umgewandelt.</label><label class="mc-option"><input type="checkbox" name="lesen_fotosynthese_04[]" value="2"> Pflanzen benötigen für die Fotosynthese nur Wasser und Sauerstoff.</label><label class="mc-option"><input type="checkbox" name="lesen_fotosynthese_04[]" value="3"> Der bei der Fotosynthese entstehende Sauerstoff ist für viele Lebewesen lebensnotwendig.</label><label class="mc-option"><input type="checkbox" name="lesen_fotosynthese_04[]" value="4"> Alle Lebewesen auf der Erde betreiben Fotosynthese.</label><label class="mc-option"><input type="checkbox" name="lesen_fotosynthese_04[]" value="5"> Das Hauptprodukt der Fotosynthese ist Kohlendioxid.</label></div>
+                </div>
+            </section>
+
+            <section id="section-10" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil C: Lesen – Aufgabe 5</h2>
+                <div class="question-container" id="lesen_vertrauen_05">
+                    <h3 class="font-semibold text-lg mb-3 text-gray-800">Leseverständnis: Vertrauen in KI</h3>
+                    <p class="mb-4 text-gray-600">Lesen Sie den Text und beantworten Sie die Fragen in eigenen Worten.</p>
+                    <div class="p-4 border rounded-md bg-gray-50 mb-4">
+                        <p class="text-gray-700">Das Vertrauen in Künstliche Intelligenz (KI) ist ein zweischneidiges Schwert. Einerseits ermöglichen uns KI-Systeme, komplexe Probleme zu lösen, Krankheiten zu diagnostizieren und unseren Alltag zu vereinfachen. Andererseits beruhen viele dieser Systeme auf undurchsichtigen Algorithmen, sogenannten "Black Boxes". Wir sehen das Ergebnis, aber nicht den Weg dorthin. Dieses Manko an Transparenz steht im Widerspruch zum menschlichen Bedürfnis, Entscheidungen nachzuvollziehen, insbesondere wenn sie weitreichende Konsequenzen haben. Echtes Vertrauen entsteht nicht durch blindes Akzeptieren von Ergebnissen, sondern durch das Verständnis der zugrundeliegenden Prinzipien und der Gewissheit, dass das System fair, zuverlässig und ohne schädliche Verzerrungen (Bias) arbeitet. Die Herausforderung besteht darin, KI-Systeme zu entwickeln, die nicht nur leistungsfähig, sondern auch erklärbar und somit vertrauenswürdig sind.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div><label for="lesen_vertrauen_05-a" class="block font-medium mb-2">a) Was ist laut Text das Hauptproblem beim Vertrauen in moderne KI-Systeme? Antworten Sie in 1-2 Sätzen.</label><textarea id="lesen_vertrauen_05-a" name="lesen_vertrauen_05-a" rows="3" class="text-answer-input"></textarea></div>
+                        <div><label for="lesen_vertrauen_05-b" class="block font-medium mb-2">b) Erklären Sie den Unterschied zwischen blinder Akzeptanz und echtem Vertrauen, wie er im Text dargestellt wird.</label><textarea id="lesen_vertrauen_05-b" name="lesen_vertrauen_05-b" rows="3" class="text-answer-input"></textarea></div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="section-11" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil D: Hören – Teil 1</h2>
+                <div class="question-container">
+                    <h3 class="font-semibold text-lg mb-3 text-gray-800">Hörübungen</h3>
+                    <p class="mb-4 text-gray-600">Hören Sie sich die Audio-Dateien an und beantworten Sie die Fragen. Sie hören jeden Text nur einmal.</p>
+                    <div class="space-y-6">
+                        <div id="D-01"><p class="font-medium mb-2">1. Welcher Beruf wird beschrieben?</p><audio controls class="w-full mb-2" src="audio/D-01.mp3"></audio><div class="space-y-1"><label class="mc-option"><input type="radio" name="D-01" value="a"> Koch</label><label class="mc-option"><input type="radio" name="D-01" value="b"> Gärtner</label><label class="mc-option"><input type="radio" name="D-01" value="c"> Schreiner</label><label class="mc-option"><input type="radio" name="D-01" value="d"> Arzt</label></div></div>
+                        <div id="D-02"><p class="font-medium mb-2">2. Was bedeutet das Wort "Bank" in diesem Kontext?</p><audio controls class="w-full mb-2" src="audio/D-02.mp3"></audio><div class="space-y-1"><label class="mc-option"><input type="radio" name="D-02" value="a"> Sitzgelegenheit</label><label class="mc-option"><input type="radio" name="D-02" value="b"> Geldinstitut</label><label class="mc-option"><input type="radio" name="D-02" value="c"> Datenbanksystem</label><label class="mc-option"><input type="radio" name="D-02" value="d"> Werkbank</label></div></div>
+                         <div id="D-03"><p class="font-medium mb-2">3. Welcher Titel passt am besten zu dieser Wettermeldung?</p><audio controls class="w-full mb-2" src="audio/D-03.mp3"></audio><div class="space-y-1"><label class="mc-option"><input type="radio" name="D-03" value="a"> Sturmwarnung für die Küste</label><label class="mc-option"><input type="radio" name="D-03" value="b"> Sommerliche Temperaturen im Süden</label><label class="mc-option"><input type="radio" name="D-03" value="c"> Regen und Gewitter im Anmarsch</label><label class="mc-option"><input type="radio" name="D-03" value="d"> Wintereinbruch in den Bergen</label></div></div>
+                        <div id="D-04"><p class="font-medium mb-2">4. Was meint der Sprecher?</p><audio controls class="w-full mb-2" src="audio/D-04.mp3"></audio><div class="space-y-1"><label class="mc-option"><input type="radio" name="D-04" value="a"> Er ist begeistert von dem Film.</label><label class="mc-option"><input type="radio" name="D-04" value="b"> Er findet den Film langweilig.</label><label class="mc-option"><input type="radio" name="D-04" value="c"> Er hat den Film nicht verstanden.</label><label class="mc-option"><input type="radio" name="D-04" value="d"> Er möchte den Film noch einmal sehen.</label></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-12" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil D: Hören – Teil 2</h2>
+                <div class="question-container">
+                    <h3 class="font-semibold text-lg mb-3 text-gray-800">Hörübungen (Fortsetzung)</h3>
+                    <div class="space-y-6">
+                        <div id="D-05"><p class="font-medium mb-2">5. Was ist mit "Stift" gemeint? (Schweizerdeutscher Kontext)</p><audio controls class="w-full mb-2" src="audio/D-05.mp3"></audio><div class="space-y-1"><label class="mc-option"><input type="radio" name="D-05" value="a"> Ein Schreibgerät</label><label class="mc-option"><input type="radio" name="D-05" value="b"> Ein Nagel</label><label class="mc-option"><input type="radio" name="D-05" value="c"> Ein Auszubildender/Lehrling</label><label class="mc-option"><input type="radio" name="D-05" value="d"> Ein Kloster</label></div></div>
+                        <div id="D-06"><p class="font-medium mb-2">6. Hören Sie das Interview und entscheiden Sie, ob die Aussagen richtig (R) oder falsch (F) sind.</p><audio controls class="w-full mb-2" src="audio/D-06.mp3"></audio><table class="w-full mt-2 text-sm"><thead><tr><th>Aussage</th><th class="text-center w-16">R</th><th class="text-center w-16">F</th></tr></thead><tbody>
+                                    <tr class="border-b"><td>1. Die Person arbeitet seit über 10 Jahren im Marketing.</td><td><input type="radio" name="D-06-1" value="R"></td><td><input type="radio" name="D-06-1" value="F"></td></tr>
+                                    <tr class="border-b"><td>2. Sie hat ihre Karriere bei einer kleinen Agentur begonnen.</td><td><input type="radio" name="D-06-2" value="R"></td><td><input type="radio" name="D-06-2" value="F"></td></tr>
+                                    <tr class="border-b"><td>3. Kreativität ist für sie der wichtigste Aspekt ihrer Arbeit.</td><td><input type="radio" name="D-06-3" value="R"></td><td><input type="radio" name="D-06-3" value="F"></td></tr>
+                                    <tr class="border-b"><td>4. Sie arbeitet lieber allein als im Team.</td><td><input type="radio" name="D-06-4" value="R"></td><td><input type="radio" name="D-06-4" value="F"></td></tr>
+                                    <tr><td>5. In Zukunft möchte sie sich selbstständig machen.</td><td><input type="radio" name="D-06-5" value="R"></td><td><input type="radio" name="D-06-5" value="F"></td></tr>
+                        </tbody></table></div>
+                         <div id="D-07"><p class="font-medium mb-2">7. In welchem Fachbereich wird der Begriff "Variable" primär verwendet?</p><audio controls class="w-full mb-2" src="audio/D-07.mp3"></audio><div class="space-y-1"><label class="mc-option"><input type="radio" name="D-07" value="a"> Geschichte</label><label class="mc-option"><input type="radio" name="D-07" value="b"> Kunst</label><label class="mc-option"><input type="radio" name="D-07" value="c"> Sport</label><label class="mc-option"><input type="radio" name="D-07" value="d"> Mathematik</label></div></div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="section-13" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil D: Hören – Teil 3</h2>
+                <div class="question-container">
+                    <h3 class="font-semibold text-lg mb-3 text-gray-800">Hörübungen (Fortsetzung)</h3>
+                    <div class="space-y-6">
+                        <div id="D-08"><p class="font-medium mb-2">8. Die Aussage "Na, das war ja wieder eine Meisterleistung!" ist wahrscheinlich...</p><audio controls class="w-full mb-2" src="audio/D-08.mp3"></audio><div class="space-y-1"><label class="mc-option"><input type="radio" name="D-08" value="a"> ...ein ehrliches Lob.</label><label class="mc-option"><input type="radio" name="D-08" value="b"> ...ironisch gemeint.</label><label class="mc-option"><input type="radio" name="D-08" value="c"> ...eine neutrale Feststellung.</label></div></div>
+                         <div id="D-09"><p class="font-medium mb-2">9. Wie verhält sich Person B im Gespräch?</p><audio controls class="w-full mb-2" src="audio/D-09.mp3"></audio><div class="space-y-1"><label class="mc-option"><input type="radio" name="D-09" value="a"> zustimmend</label><label class="mc-option"><input type="radio" name="D-09" value="b"> ablehnend</label><label class="mc-option"><input type="radio" name="D-09" value="c"> fragend</label><label class="mc-option"><input type="radio" name="D-09" value="d"> beschwichtigend</label></div></div>
+                        <div id="D-10"><p class="font-medium mb-2">10. Was bedeutet "plastisch" in der Aussage "Er hat das sehr plastisch erklärt"?</p><audio controls class="w-full mb-2" src="audio/D-10.mp3"></audio><div class="space-y-1"><label class="mc-option"><input type="radio" name="D-10" value="a"> aus Kunststoff bestehend</label><label class="mc-option"><input type="radio" name="D-10" value="b"> verformbar</label><label class="mc-option"><input type="radio" name="D-10" value="c"> anschaulich und lebendig</label><label class="mc-option"><input type="radio" name="D-10" value="d"> künstlich</label></div></div>
+                        <div id="D-11"><p class="font-medium mb-2">11. Was ist mit der "goldenen Dekade" gemeint? (Wählen Sie zwei)</p><audio controls class="w-full mb-2" src="audio/D-11.mp3"></audio><div class="space-y-1"><label class="mc-option"><input type="checkbox" name="D-11[]" value="a"> Ein Jahrzehnt, in dem viel Gold gefunden wurde.</label><label class="mc-option"><input type="checkbox" name="D-11[]" value="b"> Eine besonders erfolgreiche und blühende Zeitspanne.</label><label class="mc-option"><input type="checkbox" name="D-11[]" value="c"> Ein Zeitraum von zehn Jahren.</label><label class="mc-option"><input type="checkbox" name="D-11[]" value="d"> Eine Periode mit hoher Inflation.</label><label class="mc-option"><input type="checkbox" name="D-11[]" value="e"> Ein Schmuckstück aus Gold.</label></div></div>
+                         <div id="D-12"><p class="font-medium mb-2">12. Wer spricht hier und in welcher Situation?</p><audio controls class="w-full mb-2" src="audio/D-12.mp3"></audio><div class="space-y-1"><label class="mc-option"><input type="radio" name="D-12" value="a"> Ein Schaffner im Zug</label><label class="mc-option"><input type="radio" name="D-12" value="b"> Ein Pilot im Flugzeug</label><label class="mc-option"><input type="radio" name="D-12" value="c"> Ein Reiseleiter im Bus</label><label class="mc-option"><input type="radio" name="D-12" value="d"> Ein Kapitän auf einem Schiff</label></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-14" class="test-section">
+                <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Teil E: Schreiben</h2>
+                <div class="question-container" id="E-01">
+                    <h3 class="font-semibold text-lg mb-3 text-gray-800">Aufgabe: Eine Reise beschreiben</h3>
+                    <p class="mb-4 text-gray-600">Schreiben Sie einen kurzen Text (ca. 80-100 Wörter) über eine Reise, die Sie unternommen haben oder gerne unternehmen möchten. Beschreiben Sie das Ziel, was Sie dort erlebt haben oder erleben möchten und was diese Reise für Sie besonders macht.</p>
+                    <textarea id="E-01" name="E-01" rows="8" class="text-answer-input"></textarea>
+                    <div class="text-right text-sm text-gray-500 mt-2">Wörter: <span id="word-count-E-01">0</span></div>
+                </div>
+            </section>
+
+            <section id="section-15" class="test-section">
+                 <h2 class="text-xl font-semibold text-gray-700 border-t border-gray-200 pt-6 mt-6 mb-6">Test beendet</h2>
+                 <p class="mb-4 text-gray-600">Vielen Dank für die Teilnahme.</p>
+                 <p class="mb-6 text-lg font-medium text-blue-700">Bitte informieren Sie nun Ihre Lehrperson, dass Sie den Test abgeschlossen haben.</p>
+                 <div id="export-section" class="mt-8">
+                     <p class="mb-4 text-sm text-gray-500">(Nur für Lehrperson)</p>
+                     <button id="export-results-btn" class="bg-purple-500 hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition duration-150 ease-in-out">Ergebnisse exportieren</button>
+                     <div id="export-confirmation" class="mt-4 font-medium" style="display: none;"></div>
+                 </div>
+            </section>
+        </div>
+
+        <div id="pause-overlay" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50" style="display: none;">
+            <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-md">
+                <h3 class="text-2xl font-bold mb-4 text-gray-700">Pausiert</h3>
+                <p class="text-gray-600 mb-4">Ihr aktueller Fortschritt wurde soeben automatisch im gewählten Ordner gespeichert.</p>
+                <p class="text-gray-600 mb-6">Sie können den Browser nun sicher schliessen.<br>Oder klicken Sie auf "Fortsetzen", um direkt weiterzumachen.</p>
+                <button id="resume-btn-overlay" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg">Fortsetzen</button>
+            </div>
+        </div>
+
+        <div id="navigation" style="display: none;" class="mt-8 pt-4 border-t flex justify-between items-center">
+            <div class="flex gap-2">
+                <button id="pause-btn" class="bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition duration-150 ease-in-out">Pausieren</button>
+            </div>
+            <div>
+                <button id="prev-btn" class="bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition duration-150 ease-in-out mr-2" disabled>Zurück</button>
+                <button id="next-btn" class="bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition duration-150 ease-in-out" disabled>Weiter</button>
+            </div>
+        </div>
+    </div>
+<script>
+    // --- EVALUIERUNGS-DATEN ---
+    const correctAnswers = {
+        'A-01-1': 'd', 'A-01-2': 'en', 'A-01-3': 'den', 'A-01-4': 'ieren', 'A-01-5': 'er', 'A-01-6': 'nisse', 'A-01-7': 'isieren', 'A-01-8': 'keit', 'A-01-9': 'a', 'A-01-10': 'cht', 'A-01-11': 'ie', 'A-01-12': 're', 'A-01-13': 'a', 'A-01-14': 'l', 'A-01-15': 'hr', 'A-01-16': 'len', 'A-01-17': 'hren', 'A-01-18': 'be', 'A-01-19': 'iel', 'A-01-20': 'iche', 'A-01-21': 'er', 'A-01-22': 'l', 'A-01-23': 'a', 'A-01-24': 'lan', 'A-01-25': 'D', 'A-01-26': 'ine', 'A-01-27': 'ne', 'A-01-28': 'nce', 'A-01-29': 'en', 'A-01-30': 'dig', 'A-01-31': 'u', 'A-01-32': 'derung', 'A-01-33': 'kung', 'A-01-34': 'gen',
+        'A-02-1': 'nen', 'A-02-2': 'n', 'A-02-3': 'tigen', 'A-02-4': 'rer', 'A-02-5': 'nde', 'A-02-6': 'r', 'A-02-7': 'gend', 'A-02-8': 'd', 'A-02-9': 'e', 'A-02-10': 'fach', 'A-02-11': 'ere', 'A-02-12': 'en', 'A-02-13': 're', 'A-02-14': 'sen', 'A-02-15': 'en', 'A-02-16': 'ich', 'A-02-17': 'b', 'A-02-18': 'den', 'A-02-19': 'ns', 'A-02-20': 'ur', 'A-02-21': 'heit', 'A-02-22': 'ern', 'A-02-23': 'liche', 'A-02-24': 'ung', 'A-02-25': 'dung', 'A-02-26': 'ie', 'A-02-27': 'wor', 'A-02-28': 'cht', 'A-02-29': 'cher', 'A-02-30': 'ie', 'A-02-31': 'as', 'A-02-32': '', 'A-02-33': 'len', 'A-02-34': 'tige', 'A-02-35': 'ann', 'A-02-36': 'en', 'A-02-37': 'tigste', 'A-02-38': 'u',
+        'B-01-1': 'a', 'B-01-2': 'b', 'B-01-3': 'b',
+        'B-02-1': 'a', 'B-02-2': 'b', 'B-02-3': 'a',
+        'B-03-1': 'a', 'B-03-2': 'a', 'B-03-3': 'a', 'B-03-4': 'a',
+        'B-04-1': 'a', 'B-04-2': 'b',
+        'lesen_biohof_01-1': 'Falsch', 'lesen_biohof_01-2': 'Falsch', 'lesen_biohof_01-3': 'Unklar', 'lesen_biohof_01-4': 'Richtig',
+        'lesen_tempolimit_02-Paula[]': '4,6', 'lesen_tempolimit_02-Max[]': '1,2,5', 'lesen_tempolimit_02-Claudia[]': '1,3',
+        'lesen_kolumbus_03[]': '2,3',
+        'lesen_fotosynthese_04[]': '1,3',
+        'lesen_vertrauen_05-a': 'manuelle_auswertung', 'lesen_vertrauen_05-b': 'manuelle_auswertung',
+        'D-01': 'audio_required', 'D-02': 'audio_required', 'D-03': 'audio_required', 'D-04': 'audio_required', 'D-05': 'audio_required',
+        'D-06-1': 'audio_required', 'D-06-2': 'audio_required', 'D-06-3': 'audio_required', 'D-06-4': 'audio_required', 'D-06-5': 'audio_required',
+        'D-07': 'audio_required', 'D-08': 'audio_required', 'D-09': 'audio_required', 'D-10': 'audio_required', 'D-11[]': 'audio_required', 'D-12': 'audio_required',
+        'E-01': 'manuelle_auswertung'
+    };
+
+    const questionDescriptions = {
+        'A-01': 'Lückentext zum Thema "Smartphones".', 'A-02': 'Lückentext zum Thema "Zukunftsperspektiven".',
+        'B-01-1': 'Gross-/Kleinschreibung bei substantiviertem Verb.', 'B-01-2': 'Getrennt-/Zusammenschreibung bei trennbarem Verb.', 'B-01-3': 'Verbform im Präteritum (starkes Verb).',
+        'B-02-1': 'Kommasetzung bei Nebensatz.', 'B-02-2': 'Kommasetzung bei Relativsatz.', 'B-02-3': 'Kommasetzung bei Infinitivgruppe.',
+        'B-03-1': 'Passiv im Präteritum.', 'B-03-2': 'Konjunktiv I in der indirekten Rede.', 'B-03-3': 'Konjunktiv II bei Bedingungssatz.', 'B-03-4': 'Kasus des Relativpronomens.',
+        'B-04-1': 'Kasus nach Präposition "trotz".', 'B-04-2': 'Stilistisch passenden Ausdruck wählen.',
+        'lesen_biohof_01': 'Leseverständnis zu einem Kursangebot.',
+        'lesen_tempolimit_02': 'Leseverständnis und Zuordnung von Meinungen.',
+        'lesen_kolumbus_03': 'Leseverständnis zu einem historischen Text.',
+        'lesen_fotosynthese_04': 'Leseverständnis zu einem Sachtext.',
+        'lesen_vertrauen_05': 'Offene Fragen zu einem Sachtext über KI.',
+        'D-Hören': 'Hörverstehen: Aufgaben mit steigendem Schwierigkeitsgrad.',
+        'E-01': 'Schreibkompetenz: Eine Reise beschreiben.'
+    };
+
+    const questionCompetencies = {
+        'A-01': 'Morphologische und lexikalische Lücken in einem Sachtext kontextbezogen korrekt ergänzen.', 'A-02': 'Morphologische und lexikalische Lücken in einem Sachtext kontextbezogen korrekt ergänzen.',
+        'B-01-1': 'Regel zur Grossschreibung von substantivierten Verben kennen und anwenden.', 'B-01-2': 'Regel zur Zusammenschreibung von trennbaren Verben im Infinitiv kennen.', 'B-01-3': 'Präteritumform eines starken Verbs korrekt bilden.',
+        'B-02-1': 'Kommaregeln bei Nebensätzen anwenden.', 'B-02-2': 'Kommaregeln bei eingeschobenen Relativsätzen anwenden.', 'B-02-3': 'Kommaregeln bei Infinitivgruppen mit "zu" anwenden.',
+        'B-03-1': 'Passivformen im Präteritum korrekt bilden.', 'B-03-2': 'Konjunktiv I zur Kennzeichnung der indirekten Rede korrekt anwenden.', 'B-03-3': 'Konjunktiv II zur Formulierung von Bedingungen korrekt anwenden.', 'B-03-4': 'Den korrekten Kasus des Relativpronomens bestimmen.',
+        'B-04-1': 'Den korrekten Kasus (Genitiv) nach der Präposition "trotz" anwenden.', 'B-04-2': 'Den passenden sprachlichen Register erkennen und ein stilistisch angemessenes Verb auswählen.',
+        'lesen_biohof_01': 'Detailinformationen in einem Werbetext finden, überprüfen und erkennen, wenn Informationen nicht enthalten sind.',
+        'lesen_tempolimit_02': 'Aussagen und Haltungen aus kurzen Meinungsäusserungen herausfiltern und der sprechenden Person zuordnen.',
+        'lesen_kolumbus_03': 'Hauptaussagen und Kernaussagen in einem Sachtext identifizieren.',
+        'lesen_fotosynthese_04': 'Kernaussagen und Definitionen in einem kurzen wissenschaftlichen Text identifizieren.',
+        'lesen_vertrauen_05': 'Die Kernaussage eines kritischen Textes erfassen und in eigenen Worten wiedergeben.',
+        'D-Hören': 'Fähigkeit, aus gehörten Audio-Dateien unterschiedlicher Komplexität gezielt Informationen zu entnehmen und zu verarbeiten.',
+        'E-01': 'Schriftliche Textproduktion: Einen zusammenhängenden, deskriptiven Text zu einem Alltagsthema verfassen unter Anwendung korrekter Orthografie, Grammatik und Syntax.'
+    };
+
+    // --- Globale Variable für Ordnerzugriff ---
+    let saveDirectoryHandle = null;
+
+    // --- Konfiguration ---
+    const config = {
+        LAST_TEST_PAGE_INDEX: 14,
+        FINISH_PAGE_INDEX: 15,
+        SAVE_FILE_VERSION: "DeutschTestProgress_v8.0_Final",
+        FONT_SIZE_STORAGE_KEY: 'germanTestFontSize_v4',
+        FONT_SIZE_STEP: 0.1, MIN_FONT_SIZE_MULTIPLIER: 0.7, MAX_FONT_SIZE_MULTIPLIER: 1.5,
+        EXPORT_VERSION: "DeutschTest_V8.0_FinalExport",
+        EXPORT_FILENAME_BASE: "Ergebnisse_Deutsch_",
+        AUTO_FILE_NAME: "autosave_deutsch.json"
+    };
+
+    // --- Globaler Zustand ---
+    let testState = {
+        currentPage: 0, answers: {}, studentName: '', sectionTimes: {}, isPaused: false,
+        totalActiveTimeSeconds: 0, currentSessionStartTime: null, testStartTime: null, testEndTime: null
+    };
+    let testStarted = false;
+    let currentSectionEntryTime = null;
+    
+    // --- DOM Elemente Cache ---
+    const sections = document.querySelectorAll('.test-section');
+    const progressIndicator = document.getElementById('progress-indicator');
+    const progressBar = document.getElementById('progress-bar');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const pauseBtn = document.getElementById('pause-btn');
+    const pauseOverlay = document.getElementById('pause-overlay');
+    const resumeBtnOverlay = document.getElementById('resume-btn-overlay');
+    const startBtn = document.getElementById('start-test-btn');
+    const exportBtn = document.getElementById('export-results-btn');
+    const navigationDiv = document.getElementById('navigation');
+    const exportConfirmation = document.getElementById('export-confirmation');
+    const studentNameInput = document.getElementById('student-name');
+    const nameError = document.getElementById('name-error');
+    const increaseFontBtn = document.getElementById('increase-font-btn');
+    const decreaseFontBtn = document.getElementById('decrease-font-btn');
+    const selectDirBtn = document.getElementById('select-dir-btn');
+    const dirStatus = document.getElementById('dir-status');
+    const dirCheck = document.getElementById('dir-check');
+    const testContainer = document.getElementById('test-container');
+    const textareaE01 = document.getElementById('E-01');
+    const wordCountDisplay = document.getElementById('word-count-E-01');
+    const wordLimitInfo = document.getElementById('word-limit-info');
+
+    // --- Hilfsfunktionen ---
+    function formatTime(ms) { if (typeof ms !== 'number' || ms < 0) return '0:00:00'; let totalSeconds = Math.floor(ms / 1000); let hours = Math.floor(totalSeconds / 3600); let minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0'); let seconds = (totalSeconds % 60).toString().padStart(2, '0'); return `${hours}:${minutes}:${seconds}`; }
+    function generateFilename(base, name, extension) { const date = new Date(); const day = date.getDate().toString().padStart(2, '0'); const year = date.getFullYear(); const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']; const monthName = monthNames[date.getMonth()]; const dateString = `${day}_${monthName}_${year}`; const safeName = (name || "Unbekannt").replace(/[^a-z0-9]/gi, '_').toLowerCase(); return `${base}${safeName}_${dateString}.${extension}`; }
+    function setFontSize(multiplier) { multiplier = Math.max(config.MIN_FONT_SIZE_MULTIPLIER, Math.min(config.MAX_FONT_SIZE_MULTIPLIER, multiplier)); document.documentElement.style.setProperty('--base-font-size', `${multiplier}rem`); try { localStorage.setItem(config.FONT_SIZE_STORAGE_KEY, multiplier); } catch (e) { console.warn("Schriftgrössen-Einstellung speichern fehlgeschlagen."); } }
+    function changeFontSize(increase) { const currentMultiplier = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--base-font-size').replace('rem', '')) || 1.0; const newMultiplier = increase ? currentMultiplier + config.FONT_SIZE_STEP : currentMultiplier - config.FONT_SIZE_STEP; setFontSize(newMultiplier); }
+    function loadFontSize() { let multiplier = 1.0; try { const savedMultiplier = localStorage.getItem(config.FONT_SIZE_STORAGE_KEY); if (savedMultiplier) { const parsedMultiplier = parseFloat(savedMultiplier); if (!isNaN(parsedMultiplier) && parsedMultiplier >= config.MIN_FONT_SIZE_MULTIPLIER && parsedMultiplier <= config.MAX_FONT_SIZE_MULTIPLIER) { multiplier = parsedMultiplier; } else { localStorage.removeItem(config.FONT_SIZE_STORAGE_KEY); } } } catch(e) { console.warn("Schriftgröße laden fehlgeschlagen.", e); } document.documentElement.style.setProperty('--base-font-size', `${multiplier}rem`); }
+    function setVisualPausedState(paused) { if (!pauseBtn || !pauseOverlay) return; if (paused) { pauseBtn.textContent = 'Fortsetzen'; pauseBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600'); pauseBtn.classList.add('bg-green-500', 'hover:bg-green-600'); pauseOverlay.style.display = 'flex'; } else { pauseBtn.textContent = 'Pausieren'; pauseBtn.classList.remove('bg-green-500', 'hover:bg-green-600'); pauseBtn.classList.add('bg-blue-500', 'hover:bg-blue-600'); setTimeout(() => { if (!testState.isPaused && pauseOverlay) pauseOverlay.style.display = 'none'; }, 300); } }
+    function updateName(name) { testState.studentName = name.trim(); if(nameError) { nameError.style.display = testState.studentName ? 'none' : 'block'; } }
+    function updateWordCount() { if (textareaE01 && wordCountDisplay && wordLimitInfo) { const text = textareaE01.value.trim(); const words = text === '' ? 0 : text.split(/\s+/).filter(Boolean).length; wordCountDisplay.textContent = words; wordLimitInfo.style.display = (words > 100) ? 'block' : 'none'; } else if (wordCountDisplay) { wordCountDisplay.textContent = '0'; if(wordLimitInfo) wordLimitInfo.style.display = 'none'; } }
+    function resizeGapInput() { const size = Math.max(3, this.value.length + 1); this.style.minWidth = `${size}ch`; }
+    
+    // --- Zeitmessung ---
+    function stopTimers(timestamp) { if (!testState.isPaused && testState.currentSessionStartTime !== null) { const sessionDuration = timestamp - testState.currentSessionStartTime; testState.totalActiveTimeSeconds = (testState.totalActiveTimeSeconds || 0) + sessionDuration; if (currentSectionEntryTime !== null && testState.currentPage >= 1 && testState.currentPage <= config.LAST_TEST_PAGE_INDEX) { const sectionDuration = timestamp - currentSectionEntryTime; testState.sectionTimes[testState.currentPage] = (testState.sectionTimes[testState.currentPage] || 0) + sectionDuration; } } testState.currentSessionStartTime = null; currentSectionEntryTime = null; }
+    function startTimers(timestamp) { if (!testState.isPaused && testStarted && (testState.currentPage >= 1 && testState.currentPage <= config.LAST_TEST_PAGE_INDEX)) { testState.currentSessionStartTime = timestamp; currentSectionEntryTime = timestamp; } else { testState.currentSessionStartTime = null; currentSectionEntryTime = null; } }
+
+    // --- Antwort-Erfassung & Speicherung ---
+    function captureCurrentPageAnswers() {
+        const currentSection = document.querySelector('.test-section.active');
+        if (!currentSection) return;
+        if (!testState.answers) testState.answers = {};
+
+        const inputs = currentSection.querySelectorAll('input, select, textarea');
+        
+        inputs.forEach(input => {
+            const name = input.name;
+            const id = input.id;
+            let key = id || name;
+            if (!key || key === 'student-name') return;
+
+            if (input.type === 'radio') {
+                if (input.checked) testState.answers[key] = input.value;
+            } else if (input.type === 'checkbox') {
+                 if (!Array.isArray(testState.answers[name])) testState.answers[name] = [];
+                 const valueIndex = testState.answers[name].indexOf(input.value);
+                 if (input.checked && valueIndex === -1) testState.answers[name].push(input.value);
+                 else if (!input.checked && valueIndex > -1) testState.answers[name].splice(valueIndex, 1);
+                 if(Array.isArray(testState.answers[name])) testState.answers[name].sort();
+            } else {
+                testState.answers[key] = input.value;
+            }
+        });
+    }
+
+    async function autoSaveProgress() {
+        if (!saveDirectoryHandle || !testStarted || testState.isPaused) return;
+        captureCurrentPageAnswers();
+        const stateToSave = { ...testState, saveVersion: config.SAVE_FILE_VERSION };
+        const success = await writeToFile(config.AUTO_FILE_NAME, JSON.stringify(stateToSave));
+        if (!success) alert("WARNUNG: Automatisches Speichern fehlgeschlagen!");
+    }
+    
+    // --- KORRIGIERTE EVALUIERUNGS-LOGIK ---
+    function getTaskMetadata(questionId) {
+        let taskKey = questionId;
+        if (questionId.match(/^A-\d{2}-\d{1,2}$/)) taskKey = questionId.substring(0, 4); // A-01, A-02
+        else if (questionId.match(/^B-\d{2}-\d{1}$/)) taskKey = questionId; // B-01-1, ...
+        else if (questionId.startsWith('lesen_biohof_01')) taskKey = 'lesen_biohof_01';
+        else if (questionId.startsWith('lesen_tempolimit_02')) taskKey = 'lesen_tempolimit_02';
+        else if (questionId.startsWith('lesen_kolumbus_03')) taskKey = 'lesen_kolumbus_03';
+        else if (questionId.startsWith('lesen_fotosynthese_04')) taskKey = 'lesen_fotosynthese_04';
+        else if (questionId.startsWith('lesen_vertrauen_05')) taskKey = 'lesen_vertrauen_05';
+        else if (questionId.startsWith('D-')) taskKey = 'D-Hören';
+        else if (questionId.startsWith('E-')) taskKey = 'E-01';
+
+        const categoryMap = {'A-': 'Sprache im Fokus', 'B-': 'Orthografie & Grammatik', 'lesen_': 'Lesen', 'D-': 'Hören', 'E-': 'Schreiben'};
+        let category = 'Unbekannt';
+        for(const prefix in categoryMap) {
+            if(questionId.startsWith(prefix)) {
+                category = categoryMap[prefix];
+                break;
+            }
+        }
+        return {
+            description: questionDescriptions[taskKey] || 'Keine Beschreibung',
+            competency: questionCompetencies[taskKey] || 'Keine Kompetenz',
+            category: category
+        };
+    }
+    
+    function calculateScores() {
+        let scoresByCategory = { 'Sprache im Fokus': { score: 0, total: 0 }, 'Orthografie & Grammatik': { score: 0, total: 0 }, 'Lesen': { score: 0, total: 0 }, 'Hören': { score: 0, total: 0 }, 'Schreiben': { score: 0, total: 0 } };
+        let detailedResults = [];
+        let totalScore = 0;
+        let maxScore = 0;
+
+        Object.keys(correctAnswers).forEach(questionId => {
+            const correctAnswer = correctAnswers[questionId];
+            const { description, competency, category } = getTaskMetadata(questionId);
+            const userAnswerRaw = testState.answers[questionId];
+            
+            if (correctAnswer === 'manuelle_auswertung' || correctAnswer === 'audio_required') {
+                detailedResults.push({ questionId, description, competency, userAnswer: userAnswerRaw || '', correctAnswer, isCorrect: correctAnswer });
+                return;
+            }
+
+            maxScore++;
+            if(scoresByCategory[category]) scoresByCategory[category].total++;
+            
+            let isCorrect = false;
+            let userAnswerString = '';
+            
+            if (Array.isArray(userAnswerRaw)) {
+                userAnswerString = userAnswerRaw.sort().join(',');
+                isCorrect = userAnswerString === correctAnswer;
+            } else {
+                userAnswerString = String(userAnswerRaw || '').trim().toLowerCase();
+                isCorrect = userAnswerString === String(correctAnswer).trim().toLowerCase();
+            }
+
+            if (isCorrect) {
+                totalScore++;
+                if(scoresByCategory[category]) scoresByCategory[category].score++;
+            }
+            detailedResults.push({ questionId, description, competency, userAnswer: userAnswerString, correctAnswer, isCorrect });
+        });
+
+        return { scoresByCategory, totalScore, maxScore, detailedResults };
+    }
+
+    // --- EXPORT-FUNKTION ---
+    async function exportResults() {
+        if (testState.isPaused) resumeTest();
+        if (!testState.testEndTime) testState.testEndTime = Date.now();
+        stopTimers(testState.testEndTime);
+        captureCurrentPageAnswers(); // Final capture to be sure
+
+        if (!testState.studentName) { alert("Bitte geben Sie einen Namen ein."); studentNameInput?.focus(); return; }
+        if (!saveDirectoryHandle) { alert("Bitte wählen Sie zuerst einen Speicherordner."); selectDirBtn?.focus(); return; }
+
+        const { scoresByCategory, totalScore, maxScore, detailedResults } = calculateScores();
+            
+        const exportData = {
+            testId: config.EXPORT_VERSION,
+            studentName: testState.studentName,
+            completionTimestamp: new Date(testState.testEndTime).toISOString(),
+            testStartTime: testState.testStartTime ? new Date(testState.testStartTime).toISOString() : null,
+            totalActiveTime: formatTime(testState.totalActiveTimeSeconds),
+            results: { scoresByCategory, totalScore, maxScore, detailedResults }
+        };
+
+        const resultsString = JSON.stringify(exportData, null, 2);
+        const finalResultsFilename = generateFilename(config.EXPORT_FILENAME_BASE, testState.studentName, 'json');
+
+        const success = await writeToFile(finalResultsFilename, resultsString);
+        if (success) {
+            exportConfirmation.textContent = `Ergebnisse für ${testState.studentName} wurden in '${saveDirectoryHandle.name}/${finalResultsFilename}' gespeichert.`;
+            exportConfirmation.style.display = 'block';
+            exportConfirmation.classList.remove('text-red-600');
+            exportConfirmation.classList.add('text-green-600');
+            try { await saveDirectoryHandle.removeEntry(config.AUTO_FILE_NAME); } catch (e) { if (e.name !== 'NotFoundError') console.warn("Konnte Autosave-Datei nicht löschen:", e); }
+        } else {
+            exportConfirmation.textContent = `Fehler beim Speichern der Ergebnisse.`;
+            exportConfirmation.style.display = 'block';
+            exportConfirmation.classList.add('text-red-600');
+        }
+    }
+    
+    // --- Navigation & UI Updates ---
+    function showSection(page) {
+        stopTimers(Date.now());
+        sections.forEach((section, i) => section.classList.toggle('active', i === page));
+        testState.currentPage = page;
+        updateProgressBar();
+        updateNavigation();
+        updateProgressIndicator();
+        restoreAnswers();
+        window.scrollTo(0, 0);
+        startTimers(Date.now());
+    }
+    
+    async function nextSection() {
+        if (testState.isPaused) resumeTest();
+        await autoSaveProgress();
+        if (testState.currentPage < config.LAST_TEST_PAGE_INDEX) {
+            showSection(testState.currentPage + 1);
+        } else if (testState.currentPage === config.LAST_TEST_PAGE_INDEX) {
+            testState.testEndTime = Date.now();
+            await autoSaveProgress();
+            showSection(config.FINISH_PAGE_INDEX);
+        }
+    }
+
+    async function prevSection() {
+        if (testState.isPaused) resumeTest();
+        await autoSaveProgress();
+        if (testState.currentPage > 1) {
+            showSection(testState.currentPage - 1);
+        }
+    }
+
+    async function pauseTest() {
+        if (!testStarted || testState.isPaused || testState.currentPage === 0 || testState.currentPage >= config.FINISH_PAGE_INDEX) return;
+        stopTimers(Date.now());
+        await autoSaveProgress();
+        testState.isPaused = true;
+        setVisualPausedState(true);
+    }
+    
+    function resumeTest() {
+        if (!testStarted || !testState.isPaused) return;
+        testState.isPaused = false;
+        startTimers(Date.now());
+        setVisualPausedState(false);
+    }
+
+    function updateNavigation() {
+        if (!prevBtn || !nextBtn || !navigationDiv) return;
+        const isTestPage = testState.currentPage > 0 && testState.currentPage < config.FINISH_PAGE_INDEX;
+        navigationDiv.style.display = isTestPage ? 'flex' : 'none';
+        if(isTestPage) {
+            prevBtn.disabled = testState.currentPage <= 1;
+            nextBtn.disabled = false;
+            nextBtn.textContent = (testState.currentPage === config.LAST_TEST_PAGE_INDEX) ? 'Abschliessen' : 'Weiter';
+        }
+        if(testState.currentPage === config.FINISH_PAGE_INDEX) {
+            prevBtn.disabled = false;
+            nextBtn.style.display = 'none';
+        } else {
+             nextBtn.style.display = 'inline-block';
+        }
+    }
+
+    function updateProgressIndicator() {
+        if (!progressIndicator) return;
+        const page = testState.currentPage;
+        const sectionNames = ['Teil A', 'Teil B', 'Teil B', 'Teil B', 'Teil B', 'Teil C', 'Teil C', 'Teil C', 'Teil C', 'Teil C', 'Teil D', 'Teil D', 'Teil D', 'Teil E'];
+        if (page === 0) { progressIndicator.textContent = 'Startseite'; }
+        else if (page >= 1 && page <= config.LAST_TEST_PAGE_INDEX) { progressIndicator.textContent = `${sectionNames[page - 1]} (Seite ${page} von ${config.LAST_TEST_PAGE_INDEX})`; }
+        else if (page === config.FINISH_PAGE_INDEX) { progressIndicator.textContent = 'Test abgeschlossen'; }
+    }
+
+    function updateProgressBar() {
+        const firstTestPage = 1; const lastTestPage = config.LAST_TEST_PAGE_INDEX; const totalTestPages = lastTestPage - firstTestPage + 1;
+        let progress = 0;
+        if (testState.currentPage >= firstTestPage && testState.currentPage <= lastTestPage) { progress = ((testState.currentPage - firstTestPage + 1) / totalTestPages) * 100; }
+        else if (testState.currentPage > lastTestPage) { progress = 100; }
+        if (progressBar) { setTimeout(() => { progressBar.style.width = `${Math.min(100, progress)}%`; }, 0); }
+    }
+
+    // --- Zustand Wiederherstellen & Dateiverwaltung ---
+    function restoreAnswers() {
+        if (studentNameInput) studentNameInput.value = testState.studentName || "";
+        const currentSection = document.querySelector('.test-section.active');
+        if(!currentSection) return;
+        currentSection.querySelectorAll('input, select, textarea').forEach(el => { if (el.type === 'radio' || el.type === 'checkbox') el.checked = false; else if (el.id !== 'student-name') el.value = ''; });
+        if (!testState.answers) testState.answers = {};
+        Object.keys(testState.answers).forEach(key => {
+            const value = testState.answers[key];
+            const elementsByName = currentSection.querySelectorAll(`[name="${key}"]`);
+            if (elementsByName.length > 0) {
+                if (elementsByName[0].type === 'radio') {
+                    elementsByName.forEach(radio => radio.checked = (radio.value === value));
+                } else if (elementsByName[0].type === 'checkbox') {
+                    elementsByName.forEach(cb => cb.checked = Array.isArray(value) && value.includes(cb.value));
+                } else {
+                    elementsByName[0].value = value || '';
+                }
+            } else {
+                const elementById = currentSection.querySelector(`#${CSS.escape(key)}`);
+                if (elementById) elementById.value = value || '';
+            }
+        });
+        document.querySelectorAll('input.gap-input').forEach(resizeGapInput);
+        updateWordCount();
+    }
+
+    async function selectSaveDirectory() {
+        if (!window.showDirectoryPicker) { alert("Ihr Browser unterstützt die Ordnerauswahl nicht. Bitte verwenden Sie Chrome oder Edge."); return; }
+        try {
+            saveDirectoryHandle = await window.showDirectoryPicker({ id: 'germanTestSaveFolder', mode: 'readwrite' });
+            await saveDirectoryHandle.requestPermission({ mode: 'readwrite' });
+            dirStatus.textContent = `Ordner '${saveDirectoryHandle.name}' bereit. Prüfe...`;
+            dirCheck.classList.remove('hidden');
+            const loaded = await loadProgressFromFileSystem();
+            if (!loaded) dirStatus.textContent = `Ordner '${saveDirectoryHandle.name}' bereit.`;
+            else dirStatus.textContent = `Ordner '${saveDirectoryHandle.name}' bereit (Zwischenstand geladen).`;
+            if (studentNameInput.value.trim()) startBtn.disabled = false;
+        } catch (err) {
+            console.error("Ordnerauswahl Fehler:", err);
+            saveDirectoryHandle = null; dirCheck.classList.add('hidden'); startBtn.disabled = true;
+        }
+    }
+
+    async function writeToFile(filename, content) {
+        if (!saveDirectoryHandle) return false;
+        try {
+            const fileHandle = await saveDirectoryHandle.getFileHandle(filename, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(content);
+            await writable.close();
+            return true;
+        } catch (err) { console.error(`Fehler Schreiben ${filename}:`, err); return false; }
+    }
+
+    async function loadProgressFromFileSystem() {
+        if (!saveDirectoryHandle) return false;
+        try {
+            const fileHandle = await saveDirectoryHandle.getFileHandle(config.AUTO_FILE_NAME);
+            const file = await fileHandle.getFile();
+            const loadedState = JSON.parse(await file.text());
+            if (loadedState?.saveVersion === config.SAVE_FILE_VERSION) {
+                if (confirm(`Zwischenstand gefunden (Name: ${loadedState.studentName || '?'}). Fortsetzen?`)) {
+                    return loadState(loadedState);
+                }
+            }
+        } catch (err) { if (err.name !== 'NotFoundError') console.error(`Fehler Lesen ${config.AUTO_FILE_NAME}:`, err); }
+        return false;
+    }
+
+    function loadState(state) {
+        Object.assign(testState, state);
+        testState.isPaused = false; testState.currentSessionStartTime = null; currentSectionEntryTime = null;
+        testStarted = true;
+        loadFontSize();
+        showSection(testState.currentPage);
+        startBtn.disabled = true;
+        return true;
+    }
+    
+    // --- INITIALISIERUNG & EVENT LISTENER ---
+    function initializeTest() {
+        showSection(0);
+        loadFontSize();
+        updateWordCount();
+
+        selectDirBtn?.addEventListener('click', selectSaveDirectory);
+        increaseFontBtn?.addEventListener('click', () => changeFontSize(true));
+        decreaseFontBtn?.addEventListener('click', () => changeFontSize(false));
+
+        startBtn?.addEventListener('click', () => {
+            if (!saveDirectoryHandle) { alert("Bitte zuerst einen Ordner wählen."); return; }
+            const studentName = studentNameInput.value.trim();
+            if (!studentName) { nameError.style.display = 'block'; studentNameInput.focus(); return; }
+            updateName(studentName);
+            testStarted = true;
+            if (!testState.testStartTime) testState.testStartTime = Date.now();
+            showSection(1);
+        });
+        
+        studentNameInput?.addEventListener('input', (e) => {
+            updateName(e.target.value);
+            startBtn.disabled = !e.target.value.trim() || !saveDirectoryHandle;
+        });
+
+        nextBtn?.addEventListener('click', nextSection);
+        prevBtn?.addEventListener('click', prevSection);
+        exportBtn?.addEventListener('click', exportResults);
+
+        pauseBtn?.addEventListener('click', () => { testState.isPaused ? resumeTest() : pauseTest(); });
+        resumeBtnOverlay?.addEventListener('click', resumeTest);
+
+        testContainer?.addEventListener('input', (e) => {
+            if (e.target.id === 'E-01') updateWordCount();
+            if (e.target.classList.contains('gap-input')) resizeGapInput.call(e.target);
+            autoSaveProgress();
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', initializeTest);
+</script>
+</body>
+</html>
