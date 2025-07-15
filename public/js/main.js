@@ -69,7 +69,6 @@
     };
     let testStarted = false;
     let currentSectionEntryTime = null;
-    
     // --- DOM Elemente Cache ---
     const sections = document.querySelectorAll('.test-section');
     const progressIndicator = document.getElementById('progress-indicator');
@@ -105,7 +104,6 @@
     function updateName(name) { testState.studentName = name.trim(); if(nameError) { nameError.style.display = testState.studentName ? 'none' : 'block'; } }
     function updateWordCount() { if (textareaE01 && wordCountDisplay && wordLimitInfo) { const text = textareaE01.value.trim(); const words = text === '' ? 0 : text.split(/\s+/).filter(Boolean).length; wordCountDisplay.textContent = words; wordLimitInfo.style.display = (words > 100) ? 'block' : 'none'; } else if (wordCountDisplay) { wordCountDisplay.textContent = '0'; if(wordLimitInfo) wordLimitInfo.style.display = 'none'; } }
     function resizeGapInput() { const size = Math.max(3, this.value.length + 1); this.style.minWidth = `${size}ch`; }
-    
     // --- Zeitmessung ---
     function stopTimers(timestamp) { if (!testState.isPaused && testState.currentSessionStartTime !== null) { const sessionDuration = timestamp - testState.currentSessionStartTime; testState.totalActiveTimeSeconds = (testState.totalActiveTimeSeconds || 0) + sessionDuration; if (currentSectionEntryTime !== null && testState.currentPage >= 1 && testState.currentPage <= config.LAST_TEST_PAGE_INDEX) { const sectionDuration = timestamp - currentSectionEntryTime; testState.sectionTimes[testState.currentPage] = (testState.sectionTimes[testState.currentPage] || 0) + sectionDuration; } } testState.currentSessionStartTime = null; currentSectionEntryTime = null; }
     function startTimers(timestamp) { if (!testState.isPaused && testStarted && (testState.currentPage >= 1 && testState.currentPage <= config.LAST_TEST_PAGE_INDEX)) { testState.currentSessionStartTime = timestamp; currentSectionEntryTime = timestamp; } else { testState.currentSessionStartTime = null; currentSectionEntryTime = null; } }
@@ -117,7 +115,6 @@
         if (!testState.answers) testState.answers = {};
 
         const inputs = currentSection.querySelectorAll('input, select, textarea');
-        
         inputs.forEach(input => {
             const name = input.name;
             const id = input.id;
@@ -145,7 +142,6 @@
         const success = await writeToFile(config.AUTO_FILE_NAME, JSON.stringify(stateToSave));
         if (!success) alert("WARNUNG: Automatisches Speichern fehlgeschlagen!");
     }
-    
     // --- KORRIGIERTE EVALUIERUNGS-LOGIK ---
     function getTaskMetadata(questionId) {
         let taskKey = questionId;
@@ -173,7 +169,6 @@
             category: category
         };
     }
-    
     function calculateScores() {
         let scoresByCategory = { 'Sprache im Fokus': { score: 0, total: 0 }, 'Orthografie & Grammatik': { score: 0, total: 0 }, 'Lesen': { score: 0, total: 0 }, 'Hören': { score: 0, total: 0 }, 'Schreiben': { score: 0, total: 0 } };
         let detailedResults = [];
@@ -184,7 +179,6 @@
             const correctAnswer = correctAnswers[questionId];
             const { description, competency, category } = getTaskMetadata(questionId);
             const userAnswerRaw = testState.answers[questionId];
-            
             if (correctAnswer === 'manuelle_auswertung' || correctAnswer === 'audio_required') {
                 detailedResults.push({ questionId, description, competency, userAnswer: userAnswerRaw || '', correctAnswer, isCorrect: correctAnswer });
                 return;
@@ -192,7 +186,10 @@
 
             maxScore++;
             if(scoresByCategory[category]) scoresByCategory[category].total++;
-            
+
+            let isCorrect = false;
+            let userAnswerString = '';
+ 
             let isCorrect = false;
             let userAnswerString = '';
             
@@ -225,7 +222,6 @@
         if (!saveDirectoryHandle) { alert("Bitte wählen Sie zuerst einen Speicherordner."); selectDirBtn?.focus(); return; }
 
         const { scoresByCategory, totalScore, maxScore, detailedResults } = calculateScores();
-            
         const exportData = {
             testId: config.EXPORT_VERSION,
             studentName: testState.studentName,
@@ -251,7 +247,6 @@
             exportConfirmation.classList.add('text-red-600');
         }
     }
-    
     // --- Navigation & UI Updates ---
     function showSection(page) {
         stopTimers(Date.now());
@@ -264,7 +259,6 @@
         window.scrollTo(0, 0);
         startTimers(Date.now());
     }
-    
     async function nextSection() {
         if (testState.isPaused) resumeTest();
         await autoSaveProgress();
@@ -292,7 +286,6 @@
         testState.isPaused = true;
         setVisualPausedState(true);
     }
-    
     function resumeTest() {
         if (!testStarted || !testState.isPaused) return;
         testState.isPaused = false;
@@ -413,7 +406,6 @@
         startBtn.disabled = true;
         return true;
     }
-    
     // --- INITIALISIERUNG & EVENT LISTENER ---
     function initializeTest() {
         showSection(0);
@@ -433,7 +425,6 @@
             if (!testState.testStartTime) testState.testStartTime = Date.now();
             showSection(1);
         });
-        
         studentNameInput?.addEventListener('input', (e) => {
             updateName(e.target.value);
             startBtn.disabled = !e.target.value.trim() || !saveDirectoryHandle;
